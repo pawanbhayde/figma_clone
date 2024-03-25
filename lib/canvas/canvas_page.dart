@@ -17,7 +17,10 @@ enum _DrawMode {
   circle(iconData: Icons.circle_outlined),
 
   /// Mode to draw rectangles
-  rectangle(iconData: Icons.rectangle_outlined);
+  rectangle(iconData: Icons.rectangle_outlined),
+
+  /// Mode to erase objects
+  eraser(iconData: Icons.delete_outline);
 
   const _DrawMode({required this.iconData});
 
@@ -132,6 +135,18 @@ class _CanvasPageState extends State<CanvasPage> {
         _canvasObjects[newObject.id] = newObject;
         _currentlyDrawingObjectId = newObject.id;
         break;
+
+      /// Eraser mode
+      case _DrawMode.eraser:
+        // Loop through the canvas objects to find if there are any
+        // that intersects with the current mouse position.
+        for (final canvasObject in _canvasObjects.values.toList().reversed) {
+          if (canvasObject.intersectsWith(details.globalPosition)) {
+            _canvasObjects.remove(canvasObject.id);
+            break;
+          }
+        }
+        break;
     }
     _cursorPosition = details.globalPosition;
     _panStartPoint = details.globalPosition;
@@ -170,6 +185,16 @@ class _CanvasPageState extends State<CanvasPage> {
             (_canvasObjects[_currentlyDrawingObjectId!] as Rectangle).copyWith(
           bottomRight: details.globalPosition,
         );
+        break;
+
+      // Erases the object under the cursor
+      case _DrawMode.eraser:
+        for (final canvasObject in _canvasObjects.values.toList().reversed) {
+          if (canvasObject.intersectsWith(details.globalPosition)) {
+            _canvasObjects.remove(canvasObject.id);
+            break;
+          }
+        }
         break;
     }
 
